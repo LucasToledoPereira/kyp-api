@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  evm-gateway-api:
+    container_name: evm-gateway-api
+    build:
+      context: .
+    ports:
+      - ${EVM_GATEWAY_SERVER_PORT}:${EVM_GATEWAY_SERVER_PORT}
+    depends_on:
+      - evm-gateway-database
+      - evm-gateway-vault
+  evm-gateway-database:
+    container_name: evm-gateway-database
+    image: postgres:15.0-alpine
+    ports:
+      - ${EVM_GATEWAY_DATABASE_PORT}:${EVM_GATEWAY_DATABASE_PORT}
+    environment:
+      - POSTGRES_USER=${EVM_GATEWAY_DATABASE_USER}
+      - POSTGRES_PASSWORD=${EVM_GATEWAY_DATABASE_PASSWORD}
+      - POSTGRES_DB=${EVM_GATEWAY_DATABASE_NAME}
+  evm-gateway-vault:
+    container_name: evm-gateway-vault
+    image: vault:1.12.2
+    hostname: "evm-gateway-vault"
+    environment:
+      VAULT_ADDR: ${EVM_GATEWAY_VAULT_ADDRESS}
+    ports:
+      - ${EVM_GATEWAY_VAULT_PORT}:${EVM_GATEWAY_VAULT_PORT}

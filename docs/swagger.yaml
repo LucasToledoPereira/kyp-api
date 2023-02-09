@@ -1,0 +1,277 @@
+definitions:
+  entities.Pet:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      status:
+        $ref: '#/definitions/pets_enums.PetStatus'
+      updatedAt:
+        type: string
+    type: object
+  entities.User:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  middlewares.Login:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  models.ResultWrapper-any:
+    properties:
+      code:
+        type: string
+      data: {}
+      error:
+        items:
+          type: string
+        type: array
+      success:
+        type: boolean
+    type: object
+  models.ResultWrapper-array_entities_Pet:
+    properties:
+      code:
+        type: string
+      data:
+        items:
+          $ref: '#/definitions/entities.Pet'
+        type: array
+      error:
+        items:
+          type: string
+        type: array
+      success:
+        type: boolean
+    type: object
+  models.ResultWrapper-entities_Pet:
+    properties:
+      code:
+        type: string
+      data:
+        $ref: '#/definitions/entities.Pet'
+      error:
+        items:
+          type: string
+        type: array
+      success:
+        type: boolean
+    type: object
+  models.ResultWrapper-entities_User:
+    properties:
+      code:
+        type: string
+      data:
+        $ref: '#/definitions/entities.User'
+      error:
+        items:
+          type: string
+        type: array
+      success:
+        type: boolean
+    type: object
+  pets_commands.CreatePetCommandRequest:
+    properties:
+      description:
+        type: string
+      name:
+        description: Pet Name
+        type: string
+    type: object
+  pets_enums.PetStatus:
+    enum:
+    - DRAFT
+    - UNPUBLISHED
+    - PUBLISHED
+    type: string
+    x-enum-varnames:
+    - DRAFT
+    - UNPUBLISHED
+    - PUBLISHED
+  user_commands.CreateUserCommandRequest:
+    properties:
+      email:
+        type: string
+      name:
+        description: User Name
+        type: string
+      password:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Return a JWT
+      parameters:
+      - description: ' '
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/middlewares.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Return a JWT
+      tags:
+      - Authentication
+  /auth/refresh:
+    get:
+      description: Refresh JWT Token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Refresh JWT Token
+      tags:
+      - Authentication
+  /pets:
+    get:
+      description: Return all available pets
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ResultWrapper-array_entities_Pet'
+      summary: Return all available pets
+    post:
+      consumes:
+      - application/json
+      description: Used to create a new pet info
+      parameters:
+      - description: ' '
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/pets_commands.CreatePetCommandRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ResultWrapper-entities_Pet'
+      summary: Create a new pet
+  /pets/{id}/publish:
+    patch:
+      description: Change pet status to PUBLISHED
+      parameters:
+      - description: Pet ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ResultWrapper-entities_Pet'
+      summary: Change pet status to PUBLISHED
+  /pets/{id}/unpublish:
+    patch:
+      description: Change pet status to PUBLISHED
+      parameters:
+      - description: Pet ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ResultWrapper-entities_Pet'
+      summary: Change pet status to UNPUBLISHED
+  /private/health:
+    get:
+      description: Check if the api is working properly
+      parameters:
+      - description: Should be Bearer ...
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ResultWrapper-any'
+      security:
+      - Authorization: []
+      summary: Check the api health
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      parameters:
+      - description: ' '
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user_commands.CreateUserCommandRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ResultWrapper-entities_User'
+      summary: Register a new user
+securityDefinitions:
+  Authorization:
+    description: Service to serve a pet information to the app.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
